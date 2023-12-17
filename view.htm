@@ -5,13 +5,51 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Derpy-Video Viewer</title>
-  <!-- Include Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.3/firebase-app.js"></script>
   <!-- Include your Firebase configuration -->
-  <script src="path/to/firebase-config.js"></script>
-  <!-- Your CSS styles can go here (if needed) -->
+  <script src="firebase-config.js"></script>
+  <!-- Your CSS styles can go here -->
   <style>
-    /* Your styles here */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    header {
+      background-color: #007bff;
+      padding: 10px;
+      text-align: center;
+    }
+
+    header img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    h1 {
+      color: #fff;
+    }
+
+    section {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    video {
+      max-width: 100%;
+      height: auto;
+      margin-bottom: 20px;
+    }
+
+    p.success-message {
+      color: green;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -20,10 +58,50 @@
     <h1>SWF Video Viewer</h1>
   </header>
 
-  <section>
-    <!-- Your SWF video viewer can go here -->
-    <embed src="path/to/your-video.swf" width="640" height="480" type="application/x-shockwave-flash">
+  <section id="videoList">
+    <!-- Video elements will be dynamically added here -->
   </section>
+
+  <p class="success-message" id="successMessage"></p>
+
+  <script>
+    // Initialize Firebase and retrieve video URLs
+    const db = firebase.database();
+    const storage = firebase.storage();
+    const videoListSection = document.getElementById('videoList');
+    const successMessage = document.getElementById('successMessage');
+
+    // Event listener for retrieving video URLs
+    db.ref('videos').once('value').then(snapshot => {
+      const videos = snapshot.val();
+      if (videos) {
+        Object.keys(videos).forEach(videoId => {
+          const video = videos[videoId];
+          displayVideo(videoId, video.title);
+        });
+      }
+    });
+
+    // Function to display video element
+    function displayVideo(videoId, title) {
+      storage.ref(`${videoId}.webm`).getDownloadURL().then(url => {
+        const videoElement = document.createElement('video');
+        videoElement.controls = true;
+        videoElement.src = url;
+        videoElement.alt = title;
+        videoListSection.appendChild(videoElement);
+      }).catch(error => {
+        console.error(`Error getting video URL for ${videoId}:`, error);
+      });
+    }
+
+    // Success message for upload (if redirected from upload.htm)
+    const urlParams = new URLSearchParams(window.location.search);
+    const uploadSuccess = urlParams.get('success');
+    if (uploadSuccess) {
+      successMessage.textContent = 'Video uploaded successfully!';
+    }
+  </script>
 
   <!-- Your additional content and UI can go here -->
 
