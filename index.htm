@@ -10,12 +10,69 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.3/firebase-database.js"></script>
   <!-- Include your Firebase configuration -->
   <script src="path/to/firebase-config.js"></script>
-  <!-- Link to your logo file -->
-  <link rel="icon" href="Derpy-Video_logo.bmp" type="image/bmp">
-  <!-- Your CSS styles can go here (if needed) -->
-  <!-- Your CSS styles can go here (if needed) -->
+  <!-- Your CSS styles can go here -->
   <style>
-    /* Your styles here */
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    header {
+      background-color: #fff;
+      border-bottom: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    header img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    h1 {
+      margin: 0;
+      color: #333;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    video-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: space-between;
+    }
+
+    video-thumbnail {
+      flex: 1 0 calc(25% - 20px);
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+
+    video-thumbnail img {
+      width: 100%;
+      height: auto;
+    }
+
+    footer {
+      background-color: #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    p.placeholder-message {
+      text-align: center;
+      color: #777;
+    }
   </style>
 </head>
 <body>
@@ -24,19 +81,23 @@
     <h1>Welcome to Derpy-Video</h1>
   </header>
 
-  <nav>
-    <a href="view.htm">View Videos</a>
-    <a href="upload.htm">Upload Video</a>
-  </nav>
+  <main>
+    <video-container id="videoList">
+      <!-- Video thumbnails will be dynamically added here -->
+    </video-container>
 
-  <section id="videoList">
-    <!-- Video thumbnails and links will be dynamically added here -->
-  </section>
+    <p class="placeholder-message" id="placeholderMessage">No videos found</p>
+  </main>
+
+  <footer>
+    <p>&copy; 2023 Derpy-Video. Some rights reserved.</p>
+  </footer>
 
   <script>
     // Initialize Firebase and retrieve video metadata
     const db = firebase.database();
-    const videoListSection = document.getElementById('videoList');
+    const videoListContainer = document.getElementById('videoList');
+    const placeholderMessage = document.getElementById('placeholderMessage');
 
     // Event listener for retrieving video metadata
     db.ref('videos').once('value').then(snapshot => {
@@ -46,19 +107,23 @@
           const video = videos[videoId];
           addVideoThumbnail(videoId, video.title, video.thumbnail);
         });
+      } else {
+        // Display placeholder message if no videos found
+        placeholderMessage.style.display = 'block';
       }
     });
 
     // Function to add video thumbnail to the video list
     function addVideoThumbnail(videoId, title, thumbnailUrl) {
-      const videoThumbnail = document.createElement('div');
+      const videoThumbnail = document.createElement('video-thumbnail');
       videoThumbnail.innerHTML = `
-        <a href="view.htm?id=${videoId}">
-          <img src="${thumbnailUrl}" alt="${title}">
-          <p>${title}</p>
-        </a>
+        <img src="${thumbnailUrl}" alt="${title}">
+        <p>${title}</p>
       `;
-      videoListSection.appendChild(videoThumbnail);
+      videoThumbnail.onclick = function () {
+        window.location.href = `view.htm?id=${videoId}`;
+      };
+      videoListContainer.appendChild(videoThumbnail);
     }
   </script>
 
