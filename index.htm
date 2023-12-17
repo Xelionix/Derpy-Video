@@ -7,46 +7,15 @@
   <title>Derpy-Video Home</title>
   <!-- Include Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.3/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.3/firebase-database.js"></script>
   <!-- Include your Firebase configuration -->
   <script src="path/to/firebase-config.js"></script>
   <!-- Link to your logo file -->
   <link rel="icon" href="Derpy-Video_logo.bmp" type="image/bmp">
   <!-- Your CSS styles can go here (if needed) -->
+  <!-- Your CSS styles can go here (if needed) -->
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
-      color: #333;
-    }
-
-    header {
-      background-color: #007bff;
-      padding: 10px;
-      text-align: center;
-    }
-
-    header img {
-      max-width: 100%;
-      height: auto;
-    }
-
-    h1 {
-      color: #fff;
-    }
-
-    nav {
-      background-color: #333;
-      padding: 10px;
-      text-align: center;
-    }
-
-    nav a {
-      color: #fff;
-      margin: 0 10px;
-      text-decoration: none;
-    }
+    /* Your styles here */
   </style>
 </head>
 <body>
@@ -60,12 +29,38 @@
     <a href="upload.htm">Upload Video</a>
   </nav>
 
-  <section>
-    <h2>About Derpy-Video</h2>
-    <p>
-      Derpy-Video is a platform for sharing and enjoying short videos. Explore a variety of content created by our community.
-    </p>
+  <section id="videoList">
+    <!-- Video thumbnails and links will be dynamically added here -->
   </section>
+
+  <script>
+    // Initialize Firebase and retrieve video metadata
+    const db = firebase.database();
+    const videoListSection = document.getElementById('videoList');
+
+    // Event listener for retrieving video metadata
+    db.ref('videos').once('value').then(snapshot => {
+      const videos = snapshot.val();
+      if (videos) {
+        Object.keys(videos).forEach(videoId => {
+          const video = videos[videoId];
+          addVideoThumbnail(videoId, video.title, video.thumbnail);
+        });
+      }
+    });
+
+    // Function to add video thumbnail to the video list
+    function addVideoThumbnail(videoId, title, thumbnailUrl) {
+      const videoThumbnail = document.createElement('div');
+      videoThumbnail.innerHTML = `
+        <a href="view.htm?id=${videoId}">
+          <img src="${thumbnailUrl}" alt="${title}">
+          <p>${title}</p>
+        </a>
+      `;
+      videoListSection.appendChild(videoThumbnail);
+    }
+  </script>
 
   <!-- Your additional content and UI can go here -->
 
