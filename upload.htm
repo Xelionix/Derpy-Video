@@ -1,0 +1,104 @@
+<!-- upload.htm -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Derpy-Video Upload</title>
+  <!-- Include Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.3/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.3/firebase-storage.js"></script>
+  <!-- Include your Firebase configuration -->
+  <script src="path/to/firebase-config.js"></script>
+  <!-- Your CSS styles can go here (if needed) -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    header {
+      background-color: #007bff;
+      padding: 10px;
+      text-align: center;
+    }
+
+    header img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    h1 {
+      color: #fff;
+    }
+
+    form {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    input[type="file"] {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="Derpy-Video_logo.bmp" alt="Derpy-Video Logo">
+    <h1>Upload a Video to Derpy-Video</h1>
+  </header>
+
+  <form id="uploadForm">
+    <label for="fileInput">Select a WebM video to upload:</label>
+    <input type="file" id="fileInput" accept="video/webm" required />
+    <button type="button" onclick="uploadVideo()">Upload</button>
+  </form>
+
+  <script>
+    // Your upload script can go here
+    function uploadVideo() {
+      const fileInput = document.getElementById('fileInput');
+      const file = fileInput.files[0];
+
+      if (file) {
+        const storageRef = firebase.storage().ref();
+        const fileName = `${Date.now()}_${file.name}`;
+        const videoRef = storageRef.child(fileName);
+
+        videoRef.put(file).then((snapshot) => {
+          console.log('Video uploaded successfully:', snapshot.metadata.fullPath);
+
+          // Trigger Cloud Function for conversion if needed
+          // ...
+
+        }).catch((error) => {
+          console.error('Error uploading video:', error);
+        });
+      }
+    }
+  </script>
+
+  <!-- Your additional content and UI can go here -->
+
+</body>
+</html>
