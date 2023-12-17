@@ -7,64 +7,136 @@
   <title>Derpy-Video Upload</title>
   <!-- Include Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.3/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.3/firebase-storage.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.3/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.3/firebase-storage.js"></script>
   <!-- Include your Firebase configuration -->
-  <script src="path/to/firebase-config.js"></script>
-  <!-- Your CSS styles can go here (if needed) -->
+  <script src="firebase-config.js"></script>
+  <!-- Your CSS styles can go here -->
   <style>
-    /* Your styles here */
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    header {
+      background-color: #fff;
+      border-bottom: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    header img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    h1 {
+      margin: 0;
+      color: #333;
+    }
+
+    main {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      margin-bottom: 10px;
+    }
+
+    input {
+      margin-bottom: 20px;
+      padding: 10px;
+    }
+
+    button {
+      padding: 10px;
+      background-color: #007bff;
+      color: #fff;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    p.success-message {
+      color: green;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
   <header>
     <img src="Derpy-Video_logo.bmp" alt="Derpy-Video Logo">
-    <h1>Upload a Video to Derpy-Video</h1>
+    <h1>Upload Your Video</h1>
   </header>
 
-  <form id="uploadForm">
-    <label for="fileInput">Select a WebM video to upload:</label>
-    <input type="file" id="fileInput" accept="video/webm" required />
-    <label for="titleInput">Title:</label>
-    <input type="text" id="titleInput" required />
-    <button type="button" onclick="uploadVideo()">Upload</button>
-  </form>
+  <main>
+    <form id="uploadForm">
+      <label for="videoTitle">Video Title:</label>
+      <input type="text" id="videoTitle" name="videoTitle" required>
+
+      <label for="videoFile">Select Video File (WebM):</label>
+      <input type="file" id="videoFile" name="videoFile" accept=".webm" required>
+
+      <button type="button" onclick="uploadVideo()">Upload Video</button>
+    </form>
+
+    <p class="success-message" id="successMessage"></p>
+  </main>
 
   <script>
-    // Your upload script can go here
+    // Initialize Firebase
+    const storage = firebase.storage();
+    const db = firebase.database();
+    const uploadForm = document.getElementById('uploadForm');
+    const successMessage = document.getElementById('successMessage');
+
+    // Function to handle video upload
     function uploadVideo() {
-      const fileInput = document.getElementById('fileInput');
-      const titleInput = document.getElementById('titleInput');
-      const file = fileInput.files[0];
+      const videoTitle = document.getElementById('videoTitle').value;
+      const videoFile = document.getElementById('videoFile').files[0];
 
-      if (file && titleInput.value) {
-        const storageRef = firebase.storage().ref();
-        const fileName = `${Date.now()}_${file.name}`;
-        const videoRef = storageRef.child(fileName);
+      if (!videoTitle || !videoFile) {
+        alert('Please fill out all fields.');
+        return;
+      }
 
-        videoRef.put(file).then((snapshot) => {
-          console.log('Video uploaded successfully:', snapshot.metadata.fullPath);
+      // Generate a unique ID for the video
+      const videoId = Date.now().toString();
 
-          // Get the download URL of the uploaded video
-          snapshot.ref.getDownloadURL().then((downloadURL) => {
-            // Add video metadata to the database
-            const videoMetadata = {
-              title: titleInput.value,
-              thumbnail: downloadURL,
-            };
-            firebase.database().ref('videos').push(videoMetadata);
+      // Storage reference for the video file
+      const storageRef = storage.ref(`${videoId}.webm`);
 
-            // Reset the form
-            fileInput.value = '';
-            titleInput.value = '';
-          }).catch((error) => {
-            console.error('Error getting download URL:', error);
+      // Upload the video file
+      storageRef.put(videoFile).then(snapshot => {
+        // Get the download URL for the video
+        snapshot.ref.getDownloadURL().then(downloadURL => {
+          // Save video metadata to the database
+          db.ref(`videos/${videoId}`).set({
+            title: videoTitle,
+            thumbnail: 'path/to/default-thumbnail.jpg', // You can replace this with an actual path to a thumbnail
+            videoURL: downloadURL
           });
 
-        }).catch((error) => {
-          console.error('Error uploading video:', error);
+          // Display success message
+          successMessage.textContent = 'Video uploaded successfully!';
         });
-      }
+      }).catch(error => {
+        console.error('Error uploading video:', error);
+        alert('An error occurred while uploading the video. Please try again.');
+      });
     }
   </script>
 
